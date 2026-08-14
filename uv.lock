@@ -934,6 +934,7 @@ dependencies = [
     { name = "docling" },
     { name = "langchain" },
     { name = "langchain-community" },
+    { name = "langchain-opendataloader-pdf" },
     { name = "langchain-text-splitters" },
     { name = "opendataloader-pdf" },
     { name = "pypdf" },
@@ -946,6 +947,7 @@ requires-dist = [
     { name = "docling", specifier = ">=2.119.0" },
     { name = "langchain", specifier = ">=1.3.14" },
     { name = "langchain-community", specifier = ">=0.4.2" },
+    { name = "langchain-opendataloader-pdf", specifier = ">=2.0.0" },
     { name = "langchain-text-splitters", specifier = ">=1.1.2" },
     { name = "opendataloader-pdf", specifier = ">=2.5.0" },
     { name = "pypdf", specifier = ">=6.15.0" },
@@ -1143,6 +1145,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/65/3e/63af6b9d76d9be907c7c524d6ec18a2efed7e0e2d123fea0230d78dbd73f/langchain_core-1.5.3.tar.gz", hash = "sha256:a56457ac444fef41e9404443c187f0ecea708d36e816ea4ba9573c027f7d1a2d", size = 972461, upload-time = "2026-07-30T14:55:55.833Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/36/e6/c7c39efe0bc7e1b7c3d8f54f85846e04c901913c3d3e99068b218558c6f1/langchain_core-1.5.3-py3-none-any.whl", hash = "sha256:48b56fa580277209594dd7baf837f5b9a2a3651613f34ff9fb1728b429df015f", size = 561687, upload-time = "2026-07-30T14:55:54.419Z" },
+]
+
+[[package]]
+name = "langchain-opendataloader-pdf"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "opendataloader-pdf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/73/e9/650020e85d492ffe6cf2658fa2f6ef3476956286e9c3d6d01b0cc0ed4cba/langchain_opendataloader_pdf-2.0.0.tar.gz", hash = "sha256:14c83dc1df9f3ef0c1e5698da6d30db3a8af1151f5ae42f09bffca1156acdd47", size = 1844895, upload-time = "2026-03-16T09:21:20.265Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d8/69/38fd79483e8c3de45086202c562dea38095aedb7dfa10206ab5a7f327ad4/langchain_opendataloader_pdf-2.0.0-py3-none-any.whl", hash = "sha256:4975f06b5d1a98826f96e328e5a26d67765e87d50a87f637659da35284feeee4", size = 12965, upload-time = "2026-03-16T09:21:18.477Z" },
 ]
 
 [[package]]

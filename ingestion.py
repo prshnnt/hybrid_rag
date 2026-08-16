@@ -1,11 +1,12 @@
 from document_parser import Convert, document_to_lists
-from pymongo import MongoClient
+from db import get_client, DEFAULT_DB, DEFAULT_COLLECTION
 from vectorsearch import VectorStore
 
 import os
 from dotenv import load_dotenv
 
 from datetime import datetime, timezone
+from pymongo.errors import BulkWriteError
 from pydantic import BaseModel, ConfigDict, Field
 
 load_dotenv()
@@ -31,10 +32,7 @@ class DocumentChunk(BaseModel):
     )
 
 
-def get_client():
-    return MongoClient("mongodb://localhost:27017/")
-
-def ingest_pdfs(docs_path: str):
+def ingest_pdfs(docs_path: str, replace: bool = True):
 
     print("Loading VectorStore....")
     vector_store = VectorStore()
@@ -58,6 +56,7 @@ def ingest_pdfs(docs_path: str):
     ids = []
     # MongoDB documents for injestion
     mongo_documents = []
+    source_paths = set()
 
     for doc in docs:
 
@@ -67,7 +66,8 @@ def ingest_pdfs(docs_path: str):
 
         chunk_id = doc.metadata.get("chunk_id", 0)
 
-        # Unique ID for this chunk
+        # ID format is load-bearing for dedup + external references.
+        # Do not change without coordinating a full reindex.
         doc_id = (
             f"{source}"
             f"_page{page}"
@@ -75,6 +75,7 @@ def ingest_pdfs(docs_path: str):
         )
 
         ids.append(doc_id)
+        source_paths.add(source)
 
         document_chunk = DocumentChunk(
             id=doc_id,
@@ -104,13 +105,25 @@ def ingest_pdfs(docs_path: str):
 
     print("Saving Documents to MongoDB....")
     with get_client() as client:
-        db = client["rag_db"]
-        collection = db["document_chunks"]
+        db = client[DEFAULT_DB]
+        collection = db[DEFAULT_COLLECTION]
+
+        if replace and source_paths:
+            deleted = collection.delete_many(
+                {"source.filename": {"$in": list(source_paths)}}
+            )
+            print(f"Deleted {deleted.deleted_count} existing chunks for re-ingest.")
 
         if mongo_documents:
-            collection.insert_many(
-                mongo_documents
-            )
+            try:
+                collection.insert_many(
+                    mongo_documents,
+                    ordered=False
+                )
+            except BulkWriteError as e:
+                # Only reachable when replace=False and a duplicate _id appears.
+                skipped = len(e.details.get("writeErrors", []))
+                print(f"insert_many: {skipped} duplicates skipped.")
 
     print("Saved Documents to MongoDB.")
 

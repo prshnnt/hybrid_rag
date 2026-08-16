@@ -1,14 +1,16 @@
 from vectorsearch import VectorStore
 from indexsearch import IndexSearch
-from pymongo import MongoClient
+from db import get_client, DEFAULT_DB, DEFAULT_COLLECTION
 from ingestion import DocumentChunk
 from typing import List
+from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-def get_client():
-    return MongoClient("mongodb://localhost:27017/")
+BM25_INDEX_PATH = os.getenv("BM25_INDEX_PATH", "")
+
+
 def search(query: str, k: int = 10):
     vectorstore = VectorStore()
 
@@ -31,8 +33,8 @@ def search(query: str, k: int = 10):
 
     # MongoDB
     with get_client() as client:
-        db = client["rag_db"]
-        collection = db["document_chunks"]
+        db = client[DEFAULT_DB]
+        collection = db[DEFAULT_COLLECTION]
 
         mongo_docs = collection.find({
             "_id": {
@@ -63,10 +65,16 @@ def search(query: str, k: int = 10):
         for doc in ordered_docs
     ]
 
-    indexsearch = IndexSearch()
-    indexsearch.index(texts)
+    index_path = Path(BM25_INDEX_PATH) if BM25_INDEX_PATH else None
+    if index_path and index_path.exists():
+        indexsearch = IndexSearch.load(str(index_path))
+    else:
+        indexsearch = IndexSearch()
+        indexsearch.index(texts)
+        if index_path:
+            indexsearch.save(str(index_path))
 
-    index_ids = indexsearch.search(query)
+    index_ids = indexsearch.search(query, k=k)
 
     ranked_docs = [
         ordered_docs[i]
